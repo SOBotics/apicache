@@ -40,14 +40,16 @@ class Cache:
 
         self._redis.delete(keys)
 
-    def get_post_set(self: 'Cache', ids: list, key: str, site: str) -> set:
+    def get_post_set(self: 'Cache', ids: list, key: str, site: str,
+                     expiry: Optional[Union[int, timedelta]] = None) -> set:
         existing = [x for x in ids if self._redis.exists(str(x))]
-        existing_posts = [self._redis.get(str(x)) for x in existing]
+        existing_posts = [self._read(str(x)) for x in existing]
         required = [x for x in ids if x not in existing]
 
         group_size = 100
-        request_groups = [list(group) for key, group in itertools.groupby(required, lambda x: x // group_size)]
-        filter = '!b0OfN.wXSdUuN('
+        request_groups = [list(group) for key, group in
+                          itertools.groupby(required, lambda x: required.index(x) // group_size)]
+        filter = '!)rCcH8tl2x*c7j30PSR('
 
         for group in request_groups:
             url = 'https://api.stackexchange.com/2.2/posts/{}?key={}&filter={}&pagesize=100&site={}'\
@@ -56,7 +58,9 @@ class Cache:
             response.raise_for_status()
             data = response.json()['items']
             for post in data:
-                self._write(str(post['post_id']), json.dumps(post))
+                self._write(str(post['post_id']), json.dumps(post), expiry=expiry)
 
         required_posts = [self._redis.get(str(x)) for x in required]
+        print("Of {}: {} returned from cache and {} requested from SE API"
+              .format(len(ids), len(existing), len(required)))
         return set(existing_posts + required_posts)
