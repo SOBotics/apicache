@@ -28,8 +28,8 @@ def index():
 @app.route('/answers/<ids>')
 @app.route('/posts/<ids>')
 def posts_by_id(ids):
-    page = request.args.get('page', 1)
-    pagesize = request.args.get('pagesize', 10)
+    page = int(request.args.get('page', 1))
+    pagesize = int(request.args.get('pagesize', 10))
     site = request.args.get('site', None)
     key = request.args.get('key', None)
     if site is None:
@@ -43,7 +43,7 @@ def posts_by_id(ids):
 
     full_posts = [json.loads(x.decode('utf-8')) for x in cache.get_post_set(ids, key, site)]
     return_posts = [x for x in full_posts if str(x['post_id']) in return_ids]
-    resp = Response(json.dumps({'items': return_posts, 'has_more': len(full_posts) > len(return_posts)}))
+    resp = Response(json.dumps({'items': return_posts, 'has_more': len(full_posts) > page * pagesize}))
     resp.headers['Content-Type'] = 'application/json'
     return resp
 
