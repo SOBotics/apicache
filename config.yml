@@ -1,0 +1,5 @@
+max_cache_duration: 86400
+default_cache_duration: 600
+strip_before_cache:
+  - key
+  - access_token
