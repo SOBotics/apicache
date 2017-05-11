@@ -1,4 +1,4 @@
-from typing import Union, Optional
+from typing import Union, Optional, Any
 from datetime import timedelta
 import itertools
 import json
@@ -7,11 +7,11 @@ import requests
 
 
 class Cache:
-    def __init__(self: 'Cache', config: dict):
+    def __init__(self: 'Cache', config: dict) -> None:
         self._config = config
         self._redis = StrictRedis(host=config.get('redis_host', None), port=config.get('redis_port', None))
 
-    def _write(self: 'Cache', key: str, value: str, expiry: Optional[Union[timedelta, int]] = None):
+    def _write(self: 'Cache', key: str, value: str, expiry: Optional[Union[timedelta, int]] = None) -> None:
         # Yes, we have a default cache duration and then a default default cache duration. Shush.
         if expiry is None:
             expiry = self._config.get('default_cache_duration', 600)
@@ -22,14 +22,14 @@ class Cache:
         expiry = min(expiry, self._config.get('max_cache_duration', 86400))
         self._redis.setex(key, expiry, value)
 
-    def _read(self: 'Cache', key: str, raise_if_absent: bool = False):
+    def _read(self: 'Cache', key: str, raise_if_absent: bool = False) -> Any:
         val = self._redis.get(key)
         if val is None and raise_if_absent is True:
             raise KeyError(key)
 
         return val
 
-    def _delete(self: 'Cache', keys: Union[str, list], raise_if_absent: bool = False):
+    def _delete(self: 'Cache', keys: Union[str, list], raise_if_absent: bool = False) -> None:
         if raise_if_absent:
             if isinstance(keys, str):
                 keys = [keys]
@@ -40,7 +40,7 @@ class Cache:
 
         self._redis.delete(keys)
 
-    def get_post_set(self: 'Cache', ids: list, key: str, site: str):
+    def get_post_set(self: 'Cache', ids: list, key: str, site: str) -> set:
         existing = [x for x in ids if self._redis.exists(str(x))]
         existing_posts = [self._redis.get(str(x)) for x in existing]
         required = [x for x in ids if x not in existing]
