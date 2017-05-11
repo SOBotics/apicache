@@ -42,7 +42,8 @@ class Cache:
 
     def get_post_set(self: 'Cache', ids: list, key: str, site: str):
         existing = [x for x in ids if self._redis.exists(str(x))]
-        required = ids - existing
+        existing_posts = [self._redis.get(str(x)) for x in existing]
+        required = [x for x in ids if x not in existing]
 
         group_size = 100
         request_groups = [list(group) for key, group in itertools.groupby(required, lambda x: x // group_size)]
@@ -57,4 +58,5 @@ class Cache:
             for post in data:
                 self._write(str(post['post_id']), json.dumps(post))
 
-        return [self._redis.get(str(x)) for x in ids]
+        required_posts = [self._redis.get(str(x)) for x in required]
+        return set(existing_posts + required_posts)
