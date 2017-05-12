@@ -1,4 +1,4 @@
 redis_host: localhost
 redis_port: 6379
 max_cache_duration: 86400
-default_cache_duration: 600
+default_cache_duration: 900
