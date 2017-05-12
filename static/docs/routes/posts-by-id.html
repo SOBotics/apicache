@@ -1,0 +1,24 @@
+<h1>Posts by ID <em>(<code>/posts/{ids}</code>)</em></h1>
+<p class="muted">Aliases: <code>/questions/{ids}</code>, <code>/answers/{ids}</code></p>
+
+<p>Fetches a set of posts identified by a semicolon-delimited list of post IDs.</p>
+
+<h3>Parameters</h3>
+<p><strong>Required:</strong></p>
+<ul>
+    <li><code>key</code> - a Stack Exchange API key</li>
+    <li><code>site</code> - the API site parameter for a Stack Exchange site</li>
+</ul>
+<p><strong>Optional:</strong></p>
+<ul>
+    <li><code>page</code> - page number of results to fetch</li>
+    <li><code>pagesize</code> - number of results to return in one page</li>
+    <li><code>max_age</code> - maximum age in seconds of cached results you want returned</li>
+</ul>
+
+<h3>Examples</h3>
+<p><strong>Requesting posts 123, 124, and 125 from Stack Overflow</strong></p>
+<pre><code class="nohighlight">GET /questions/123;124;125?key=IKesi3924bsnsoe9((&site=stackoverflow HTTP/1.1</code></pre>
+
+<p><strong>Requesting the same posts, but with a maximum cache age of five minutes</strong></p>
+<pre><code class="nohighlight">GET /questions/123;124;125?key=IKesi3924bsnsoe9((&site=stackoverflow&max_age=300 HTTP/1.1</code></pre>

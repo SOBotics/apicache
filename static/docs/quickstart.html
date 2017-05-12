@@ -1,0 +1,18 @@
+<h1>APICache Quickstart</h1>
+<p>APICache is a caching proxy for the Stack Exchange API - but it's more than just a HTTP proxy. Using APICache
+enables you to save on your API request quota by making use of data requested by other apps in the recent past.</p>
+
+<h2>I want to use APICache!</h2>
+<p>Cool. Find the URL of a server it's being hosted on. For the purposes of documentation, we'll assume it's being
+hosted on <code>https://cache.example.org/</code>. You will now need:</p>
+<ul>
+    <li>An app registered on <a href="https://stackapps.com/">Stack Apps</a> to get a request key</li>
+    <li>An existing program you want to adapt to using APICache, or an idea for a new program.</li>
+</ul>
+<p>Using APICache is much like using the Stack Exchange API; many of the routes are the same, as are most parameters
+and response formats. APICache currently supports these routes:</p>
+<ul>
+    <li><a href="/docs/routes/posts-by-id"><code>/questions/{ids}</code></a></li>
+    <li><a href="/docs/routes/posts-by-id"><code>/answers/{ids}</code></a></li>
+    <li><a href="/docs/routes/posts-by-id"><code>/posts/{ids}</code></a></li>
+</ul>

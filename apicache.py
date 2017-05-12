@@ -1,5 +1,6 @@
 import json
-from flask import Flask, request, Response
+import os.path
+from flask import Flask, request, Response, render_template, abort, redirect
 import yaml
 from cache import Cache
 
@@ -24,10 +25,28 @@ def items_response(items, has_more):
     return resp
 
 
+def humanize(s):
+    s = s.replace('/', ' - ')
+    s = '.'.join(s.split('.')[0:-1])
+    return s.title()
+
+
 @app.route('/')
 def index():
-    # Eventually, this should probably redirect to apicache's documentation.
-    return 'apicache'
+    return redirect('/docs/quickstart', code=302)
+
+
+@app.route('/docs/<path:path>')
+def docs(path):
+    path = path + '.html'
+    filepath = os.path.join(app.static_folder, 'docs', path)
+    if os.path.isfile(filepath):
+        with open(filepath, 'r') as f:
+            content = f.read()
+
+        return render_template('docs.html', content=content, title=humanize(path))
+    else:
+        abort(404)
 
 
 @app.route('/questions/<ids>')
