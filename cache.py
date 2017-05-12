@@ -1,5 +1,6 @@
 from typing import Union, Optional, Any
-from datetime import timedelta
+from datetime import timedelta, datetime
+from dateutil.parser import parse
 import itertools
 import json
 from redis import StrictRedis
@@ -21,13 +22,16 @@ class Cache:
 
         expiry = min(expiry, self._config.get('max_cache_duration', 86400))
         self._redis.setex(key, expiry, value)
+        self._redis.setex(key + ':time', expiry, datetime.utcnow())
 
-    def _read(self: 'Cache', key: str, raise_if_absent: bool = False) -> Any:
+    def _read(self: 'Cache', key: str, raise_if_absent: bool = False) -> tuple:
         val = self._redis.get(key)
+        insert_time = self._redis.get(key + ':time')
+        parsed_time = parse(insert_time) if insert_time is not None else None
         if val is None and raise_if_absent is True:
             raise KeyError(key)
 
-        return val
+        return val, parsed_time
 
     def _delete(self: 'Cache', keys: Union[str, list], raise_if_absent: bool = False) -> None:
         if raise_if_absent:
@@ -40,10 +44,29 @@ class Cache:
 
         self._redis.delete(keys)
 
+    def _valid(self: 'Cache', key: str, max_age: Optional[Union[int, timedelta]] = None) -> bool:
+        exists = self._redis.exists(key)
+        if exists:
+            if max_age is not None:
+                timestamp_exists = self._redis.exists(key + ':time')
+                if not timestamp_exists:
+                    return False
+
+                inserted_at = parse(self._redis.get(key + ':time'))
+                if type(max_age) == int:
+                    max_age = timedelta(seconds=max_age)
+
+                return inserted_at > datetime.utcnow() - max_age
+            else:
+                return True
+        else:
+            return False
+
     def get_post_set(self: 'Cache', ids: list, key: str, site: str,
-                     expiry: Optional[Union[int, timedelta]] = None) -> set:
-        existing = [x for x in ids if self._redis.exists(str(x))]
-        existing_posts = [self._read(str(x)) for x in existing]
+                     expiry: Optional[Union[int, timedelta]] = None,
+                     max_age: Optional[Union[int, timedelta]] = None) -> set:
+        existing = [x for x in ids if self._valid(str(x), max_age)]
+        existing_posts = [self._read(str(x))[0] for x in existing]
         required = [x for x in ids if x not in existing]
 
         group_size = 100
@@ -60,7 +83,7 @@ class Cache:
             for post in data:
                 self._write(str(post['post_id']), json.dumps(post), expiry=expiry)
 
-        required_posts = [self._redis.get(str(x)) for x in required]
+        required_posts = [self._read(str(x))[0] for x in required]
         print("Of {}: {} returned from cache and {} requested from SE API"
               .format(len(ids), len(existing), len(required)))
-        return set(existing_posts + required_posts)
+        return set([x for x in existing_posts + required_posts if x is not None])
