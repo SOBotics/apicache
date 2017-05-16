@@ -87,3 +87,28 @@ class Cache:
         print("Of {}: {} returned from cache and {} requested from SE API"
               .format(len(ids), len(existing), len(required)))
         return set([x for x in existing_posts + required_posts if x is not None])
+
+    def get_recent_questions(self: 'Cache', key: str, site: str,
+                             expiry: Optional[Union[int, timedelta]] = None,
+                             max_age: Optional[Union[int, timedelta]] = None) -> list:
+        if self._valid('recent_questions', max_age):
+            print('Valid recent questions list exists, reading from cache with supplement')
+            ids = self._read('recent_questions')[0].decode('utf-8').split(';')
+            return [json.loads(x.decode('utf-8')) for x in self.get_post_set(ids, key, site, expiry, max_age)]
+        else:
+            print('No valid recent questions list, sourcing from API')
+            filter = '!-MQ9xUObaj3LoqHtm(M_BlElks5TrJ)dF'
+            url = 'https://api.stackexchange.com/2.2/questions?key={}&filter={}&pagesize=100&site={}'\
+                  .format(key, filter, site)
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.json()['items']
+            qids = []
+            for question in data:
+                qid = str(question['question_id'])
+                self._write(qid, json.dumps(question), expiry=expiry)
+                qids.append(qid)
+
+            self._write('recent_questions', ';'.join(qids))
+            return data
+

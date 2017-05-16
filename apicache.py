@@ -57,7 +57,7 @@ def posts_by_id(ids):
     pagesize = int(request.args.get('pagesize', 10))
     site = request.args.get('site', None)
     key = request.args.get('key', None)
-    max_age = int(request.args.get('max_age', None))
+    max_age = int(request.args.get('max_age', 9e9))
 
     if site is None:
         return bad_param_error('site')
@@ -72,6 +72,22 @@ def posts_by_id(ids):
     return_posts = [x for x in full_posts if str(x['post_id']) in return_ids]
 
     return items_response(return_posts, len(full_posts) > page * pagesize)
+
+
+@app.route('/questions')
+def recent_questions():
+    pagesize = int(request.args.get('pagesize', 10))
+    site = request.args.get('site', None)
+    key = request.args.get('key', None)
+    max_age = int(request.args.get('max_age', 9e9))
+
+    if site is None:
+        return bad_param_error('site')
+    if key is None:
+        return bad_param_error('key')
+
+    items = cache.get_recent_questions(key, site, max_age=max_age)[0:pagesize]
+    return items_response(items, False)
 
 
 
