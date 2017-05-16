@@ -1,0 +1,19 @@
+<h1>Recent Questions <em>(<code>/questions</code>)</em></h1>
+
+<p>Fetches recently-posted questions. This route does not support paging.</p>
+
+<h3>Parameters</h3>
+<p><strong>Required:</strong></p>
+<ul>
+    <li><code>key</code> - a Stack Exchange API key</li>
+    <li><code>site</code> - the API site parameter for a Stack Exchange site</li>
+</ul>
+<p><strong>Optional:</strong></p>
+<ul>
+    <li><code>pagesize</code> - number of results to return in one page</li>
+    <li><code>max_age</code> - maximum age in seconds of the recent questions list</li>
+</ul>
+
+<h3>Examples</h3>
+<p><strong>Recent questions on Super User</strong></p>
+<pre><code class="nohighlight">GET /questions?key=IKesi3924bsnsoe9((&site=superuser HTTP/1.1</code></pre>
